@@ -16,7 +16,7 @@
 
 	******************************* 
 	*  Execute the shell command  *
-	*	      ./run_script          *
+	*	./run_script          *
 	*******************************
 
 * `cup declaration.cup` : It creates the files : Parser.java , Sym.java
