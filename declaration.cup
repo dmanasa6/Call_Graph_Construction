@@ -1,0 +1,277 @@
+
+
+import java_cup.runtime.*;
+
+scan with {: return getScanner().next_token(); :};
+
+terminal INT, STRING, SEMI, COMMA, SPACE, EOFILE, VOID, BOOL, N_SPACE, L_PAREN, R_PAREN, RETURN, NEWLINE, QUOTES, PUBLIC, ABSTRACT, FINAL, CLASS, EXTENDS, IF, ELSE, TAB, PRIVATE, STATIC, LBRACK, RBRACK, INC, DEC, FOR, WHILE;
+
+terminal String ID;
+terminal String PRINT, NEW;
+terminal String PLUS, SUB, MULT, DIV, MOD, EQ, DOT;
+terminal String L_BRACKET, R_BRACKET;
+terminal Integer NUMBER;
+terminal String GT, LT, EQQ, NEQ, GEQ, LEQ;
+
+
+non terminal high_order_func_def;
+
+non terminal TypeNode type;
+non terminal VarDeclNode variable_decln;
+non terminal IdNode varlist;
+non terminal FuncDeclNode function_decln;
+non terminal ParamNode parameters;
+non terminal PrintStmtNode print_stmt;
+non terminal FuncDefNode function_def;
+non terminal RetStmt ret;
+non terminal ExprNode expr;
+non terminal StmtNode stmt;
+non terminal ProgramNode prog;
+non terminal StartNode s;
+non terminal ClasModNode class_modifier;
+non terminal ClasDeclNode class_decln;
+non terminal OperNode operator;
+non terminal AssgnNode assignment;
+non terminal FunCallNode func_call;
+non terminal ArgNode arguments;
+non terminal ArgumentNode args;
+non terminal BoolExprNode bool_expr;
+non terminal BoolOperNode bool_operator;
+non terminal OperandNode operand;
+non terminal IfStmtNode if_stmt, else_stmt;
+non terminal ObjectCreatNode object_creation;
+non terminal ObjFuncCall object_func_call;
+non terminal ModifierNode modifier;
+non terminal ForNode for;
+non terminal IncDecNode inc_dec;
+non terminal while;
+
+precedence left PLUS, SUB;
+precedence left MULT, DIV;
+
+start with s;
+
+s ::= prog:p {: RESULT = new StartNode(p); :};
+
+prog ::= prog NEWLINE stmt:s 
+			{: RESULT = new ProgramNode(s); :}
+		 | stmt:s
+		 	{: RESULT = new ProgramNode(s); :};
+
+stmt ::= class_decln:cd
+			{: RESULT = new StmtNode(cd); :}
+		 | variable_decln:vd
+		 	{: RESULT = new StmtNode(vd); :} 
+		 | function_decln:fd
+		 	{: RESULT = new StmtNode(fd); :}
+		 | function_def:fdef
+		 	{: RESULT = new StmtNode(fdef); :}
+		 | assignment SEMI | high_order_func_def | print_stmt 
+		 | func_call:fc SEMI
+		 	{: RESULT = new StmtNode(fc); :}
+		 | if_stmt else_stmt
+		 | ret
+		 | object_creation:oc
+		 	{: RESULT = new StmtNode(oc); :}
+		 | object_func_call SEMI
+		 | for | while;
+
+
+object_creation ::= type:t SPACE ID:i2 SPACE EQ SPACE NEW SPACE ID:i3 L_BRACKET arguments R_BRACKET SEMI
+					{: RESULT = new ObjectCreatNode(t,new IdNode(i2),new IdNode(i3)); :}
+					| ID:i2 SPACE EQ SPACE NEW SPACE ID:i3 L_BRACKET arguments R_BRACKET SEMI
+					{: RESULT = new ObjectCreatNode(new IdNode(i2), new IdNode(i3)); :};
+
+object_func_call ::= ID:i1 DOT ID:i2 L_BRACKET arguments:a R_BRACKET
+					 {:	RESULT = new ObjFuncCall(new IdNode(i1),new IdNode(i2),a); :};
+
+func_call ::= ID:i L_BRACKET arguments:p R_BRACKET
+				{: RESULT = new FunCallNode(new IdNode(i),p); :}
+			  | ID:i L_BRACKET func_call:fc R_BRACKET
+			  	{: RESULT = new FunCallNode(new IdNode(i),fc); :};
+
+arguments ::= args:a COMMA arguments:p
+			{: RESULT = new ArgNode(a,p); :}
+		  | args:a
+		  	{: RESULT = new ArgNode(a); :}
+		  | args:a COMMA func_call:fc
+		  	{: RESULT = new ArgNode(a,fc); :}
+		  | {: RESULT = new ArgNode(); :}
+		  | func_call COMMA arguments;
+
+args ::= ID:i
+			{: RESULT = new ArgumentNode(new IdNode(i)); :}
+		| NUMBER:n
+			{: RESULT = new ArgumentNode(n); :}
+		| expr:e
+			{: RESULT = new ArgumentNode(e); :};
+
+/* Varaible declarations => int a,b; */
+type ::= INT 
+			{: RESULT = new IntNode(); :}
+		| STRING
+			{: RESULT = new StringNode(); :}
+		| BOOL 
+			{: RESULT = new BooleanNode(); :}
+		| ID:i SPACE
+			{: RESULT = new OtherNode(new IdNode(i)); :}
+		| ID:i1 LBRACK varlist:v RBRACK
+			{: RESULT = new OtherNode(new IdNode(i1),v); :};
+
+variable_decln ::= type:t SPACE varlist:i SEMI
+					{: RESULT = new VarDeclNode(t,i); :}
+				   | modifier:m type:t SPACE varlist:i SEMI
+				   	{: RESULT = new VarDeclNode(m,t,i); :};
+
+modifier ::= PUBLIC
+			 {: RESULT = new PublicNode(); :}
+		 	| PRIVATE SPACE
+			 {: RESULT = new PrivateNode(); :}
+			| STATIC SPACE
+		     {: RESULT = new StaticNode(); :};
+
+varlist ::= ID:i
+				{: RESULT = new IdNode(i); :} COMMA varlist 
+			| ID:i
+				{: RESULT = new IdNode(i); :}
+			| assignment
+			| assignment COMMA varlist;
+
+/* function declaration => int sum(int a,int b); */
+function_decln ::= type:t SPACE ID:i L_BRACKET parameters:p R_BRACKET SEMI
+					{: RESULT = new FuncDeclNode(t,new IdNode(i),p); :} 
+				   | VOID SPACE ID:i L_BRACKET parameters:p R_BRACKET SEMI
+				   	{: RESULT = new FuncDeclNode(new IdNode(i),p); :};
+parameters ::= type:t SPACE ID:i COMMA parameters:p
+				{: RESULT = new ParamNode(t,new IdNode(i),p); :} 
+			   | type:t SPACE ID:i 
+			   	{: RESULT = new ParamNode(t,new IdNode(i)); :}
+			   | {: RESULT = new ParamNode(); :};
+
+/* arthimetic expressions 
+expr ::= term | expr PLUS term | expr SUB term;
+term ::= factor | term MULT factor | term DIV factor;
+factor ::= ID | L_BRACKET expr R_BRACKET; */
+expr ::= ID:i1 operator:op ID:i2
+			{: RESULT = new ExprNode(new IdNode(i1),op,new IdNode(i2)); :}
+		 | L_BRACKET:l expr:e R_BRACKET:r
+		 	{: RESULT = new ExprNode(l,e,r); :}
+		 | ID:i operator:op expr:e
+		 	{: RESULT = new ExprNode(new IdNode(i),op,e); :}
+		 | ID:i operator:op NUMBER:n
+		 	{: RESULT = new ExprNode(new IdNode(i),op,n); :}
+		 | NUMBER:n1 operator:op NUMBER:n2
+		 	{: RESULT = new ExprNode(n1,op,n2); :}
+		 | NUMBER:n operator:op expr:e
+		 	{: RESULT = new ExprNode(n,op,e); :}
+		 | NUMBER:n operator:op ID:i
+		 	{: RESULT = new ExprNode(new IdNode(i),op,n); :};
+
+operator ::= PLUS:p
+				{: RESULT = new AddNode(p); :}
+			 | SUB:s
+			 	{: RESULT = new SubNode(s); :}
+			 | MULT:m
+			 	{: RESULT = new MultNode(m); :}
+			 | DIV:d
+			 	{: RESULT = new DivNode(d); :}
+			 | MOD:md
+			 	{: RESULT = new ModNode(md); :};
+
+bool_expr ::= operand:p1 bool_operator:op operand:p2
+				{: RESULT = new BoolExprNode(p1,op,p1); :}
+			  | func_call:fc
+			  	{: RESULT = new BoolExprNode(fc); :}
+			  | object_func_call:ofc
+			  	{: RESULT = new BoolExprNode(ofc); :};
+
+operand ::= ID:i 
+			 {: RESULT = new OperandNode(new IdNode(i)); :}
+			| NUMBER:n
+			 {: RESULT = new OperandNode(n); :}
+			| expr:e
+			 {: RESULT = new OperandNode(e); :}
+			| func_call:fc
+			 {: RESULT = new OperandNode(fc); :};
+
+bool_operator ::= LT:op
+					{: RESULT = new LessThanNode(op); :} 
+				| GT:op
+					{: RESULT = new GreatThanNode(op); :} 
+				| EQQ:op
+					{: RESULT = new EqualsNode(op); :} 
+				| NEQ:op
+					{: RESULT = new NotEqlNode(op); :} 
+				| GEQ:op
+					{: RESULT = new GreatEqlNode(op); :} 
+				| LEQ:op
+					{: RESULT = new LessEqlNode(op); :};
+
+/* assignment expressions */
+assignment ::= ID:i1 EQ:eq ID:i2
+				{: RESULT = new AssgnNode(new IdNode(i1),eq,new IdNode(i2)); :} 
+			  | ID:i EQ:eq expr:e
+			  	{: RESULT = new AssgnNode(new IdNode(i),eq,e); :}
+			  | ID:i EQ:eq NUMBER:n
+			  	{: RESULT = new AssgnNode(new IdNode(i),eq,n); :}
+			  | ID:i EQ:eq func_call:fc
+			  	{: RESULT = new AssgnNode(new IdNode(i),eq,fc); :}
+			  | ID:i EQ:eq object_func_call:ofc
+			  	{: RESULT = new AssgnNode(new IdNode(i),eq,ofc); :};
+
+/* print statements */
+print_stmt ::= PRINT:p L_BRACKET ID:i R_BRACKET SEMI
+				{: RESULT = new PrintStmtNode(p,new IdNode(i)); :}
+			   | PRINT:p L_BRACKET QUOTES ID:q QUOTES R_BRACKET SEMI
+			   	{: RESULT = new PrintStmtNode(p,q); :};
+
+/* function definitions 
+=> int sum(int a,int b) { int a,b; return a+b; }
+=> int sum(int a,int b) { int a,b; return a; } 
+=> void observe(string a,string b) { string s1,s2; string copy(string s1,string s2); }*/
+function_def ::= type:t SPACE ID:i L_BRACKET parameters:p R_BRACKET NEWLINE L_PAREN NEWLINE prog NEWLINE R_PAREN 
+					{: RESULT = new FuncDefNode(t,new IdNode(i),p); :}
+				 | VOID SPACE ID:i L_BRACKET parameters:p R_BRACKET NEWLINE L_PAREN NEWLINE prog NEWLINE R_PAREN
+				 	{: RESULT = new FuncDefNode(new IdNode(i),p); :};
+
+ret ::= RETURN SPACE operand:op SEMI
+			{: RESULT = new RetStmt(op); :};
+
+
+/* class declarations 
+=> class class_name { }; */
+class_decln ::= class_modifier:cm SPACE CLASS SPACE ID:i NEWLINE L_PAREN NEWLINE prog NEWLINE R_PAREN {: RESULT = new ClasDeclNode(new IdNode(i),cm); :};
+
+
+class_modifier ::= PUBLIC 
+					{: RESULT = new PublNode(); :}
+				   | ABSTRACT 
+				   	{: RESULT = new AbstNode(); :}
+				   | FINAL
+				   	{: RESULT = new FinNode(); :};
+
+else_stmt ::= ELSE NEWLINE L_PAREN NEWLINE prog:p2 NEWLINE R_PAREN
+					{: RESULT = new IfStmtNode(p2); :}
+			  | ELSE SPACE IF L_BRACKET bool_expr:be R_BRACKET NEWLINE L_PAREN NEWLINE prog:p NEWLINE R_PAREN else_stmt
+			  	{: RESULT = new IfStmtNode(be,p); :}
+			  | ;
+
+if_stmt ::= IF L_BRACKET bool_expr:be R_BRACKET NEWLINE L_PAREN NEWLINE prog:p1 NEWLINE R_PAREN
+					{: RESULT = new IfStmtNode(be,p1); :};
+
+/* Higher order functions => either the parameters or return type are functions 
+high_order_func_def ::=	type SPACE ID L_BRACKET high_parameters R_BRACKET SEMI;
+high_parameters ::= */
+
+
+// LOOPS : for, while
+
+inc_dec ::= INC 
+			 {: RESULT = new IncNode(); :}
+			| DEC
+			 {: RESULT = new DecNode(); :};
+
+for ::= FOR L_BRACKET INT SPACE assignment:a SEMI ID:i1 bool_operator:op ID:i2 SEMI ID:i3 inc_dec:id R_BRACKET NEWLINE L_PAREN NEWLINE prog:p NEWLINE R_PAREN
+		{: RESULT = new ForNode(a,new IdNode(i1),op,new IdNode(i2),new IdNode(i3),id,p); :};
+
+while ::= WHILE L_BRACKET bool_expr R_BRACKET NEWLINE L_PAREN NEWLINE prog NEWLINE R_PAREN;

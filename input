@@ -1,0 +1,23 @@
+public class Try
+{
+void main(String args)
+{
+int m=2,n=8;
+ack(m,n);
+}
+int ack(int m,int n)
+{
+if(m==0)
+{
+return n+1;
+}
+if(n==0)
+{
+return ack(m-1,1);
+}else
+{
+return ack(m-1,ack(m,n-1));
+}
+return 0;
+}
+}

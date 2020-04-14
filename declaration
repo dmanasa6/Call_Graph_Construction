@@ -1,0 +1,210 @@
+import java_cup.runtime.Symbol;
+import java_cup.runtime.Scanner;
+
+class TokenVal {
+	String idVal;
+	TokenVal(String val)
+	{
+		idVal = val;
+	}
+}
+
+%%
+%cup
+%eofval{
+	System.exit(0);
+%eofval}
+%%
+
+";" 
+{
+	return new Symbol(sym.SEMI);
+}
+"," 
+{
+	return new Symbol(sym.COMMA);
+}
+" " 
+{
+	return new Symbol(sym.SPACE);
+}
+"	" 
+{
+	return new Symbol(sym.TAB);
+}
+[0-9]+ 
+{
+	return new Symbol(sym.NUMBER,new Integer(yytext()));
+}
+"int" 
+{
+	return new Symbol(sym.INT);
+}
+"String"
+{
+	return new Symbol(sym.STRING);
+}
+"void" 
+{
+	return new Symbol(sym.VOID);
+}
+"boolean" 
+{
+	return new Symbol(sym.BOOL);
+}
+"while"
+{
+	return new Symbol(sym.WHILE);
+}
+"if" 
+{
+	return new Symbol(sym.IF);
+}
+"else" 
+{
+	return new Symbol(sym.ELSE);
+}
+"."
+{
+	return new Symbol(sym.DOT);
+}
+"return" 
+{
+	return new Symbol(sym.RETURN);
+}
+"class" 
+{
+	return new Symbol(sym.CLASS);
+}
+"extends" 
+{
+	return new Symbol(sym.EXTENDS);
+}
+"public" 
+{
+	return new Symbol(sym.PUBLIC);
+}
+"private"
+{
+	return new Symbol(sym.PRIVATE);
+}
+"static"
+{
+	return new Symbol(sym.STATIC);
+}
+"abstract" 
+{
+	return new Symbol(sym.ABSTRACT);
+}
+"final" 
+{
+	return new Symbol(sym.FINAL);
+}
+"for"
+{
+	return new Symbol(sym.FOR);
+}
+"System.out.println"
+{
+	return new Symbol(sym.PRINT);
+}
+"new"
+{
+	return new Symbol(sym.NEW);
+}
+[A-Za-z][A-Za-z0-9_]*
+{
+	return new Symbol(sym.ID,new String(yytext()));
+}
+"("
+{
+	return new Symbol(sym.L_BRACKET);
+}
+")"
+{
+	return new Symbol(sym.R_BRACKET);
+}
+"{"
+{
+	return new Symbol(sym.L_PAREN);
+}
+"}"
+{
+	return new Symbol(sym.R_PAREN);
+}
+"++"
+{
+	return new Symbol(sym.INC);
+}
+"--"
+{
+	return new Symbol(sym.DEC);
+}
+"<"
+{
+	return new Symbol(sym.LBRACK);
+}
+">"
+{
+	return new Symbol(sym.RBRACK);
+}
+"+"
+{
+	return new Symbol(sym.PLUS);
+}
+"="
+{
+	return new Symbol(sym.EQ);
+}
+"-"
+{
+	return new Symbol(sym.SUB);
+}
+"%"
+{
+	return new Symbol(sym.MOD);
+}
+">"
+{
+	return new Symbol(sym.GT);
+}
+"<"
+{
+	return new Symbol(sym.LT);
+}
+"=="
+{
+	return new Symbol(sym.EQQ);
+}
+"!="
+{
+	return new Symbol(sym.NEQ);
+}
+">="
+{
+	return new Symbol(sym.GEQ);
+}
+"<="
+{
+	return new Symbol(sym.LEQ);
+}
+"\""
+{
+	return new Symbol(sym.QUOTES);
+}
+"*"
+{
+	return new Symbol(sym.MULT);
+}
+"/"
+{
+	return new Symbol(sym.DIV);
+}
+[\n] 
+{
+	return new Symbol(sym.NEWLINE);
+}
+[\n\r] 
+{
+	System.out.println("LA" + "EOF");return new Symbol(sym.EOFILE);
+}

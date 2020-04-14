@@ -1,0 +1,7 @@
+cup declaration.cup
+jlex declaration
+javac *.java
+java Main > ast
+python rev.py
+python graph.py
+dot -Tps call_graph.gv -o call_graph.ps
